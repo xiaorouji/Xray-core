@@ -231,7 +231,7 @@ L:
 }
 
 // toDnsContext create a new background context with parent inbound, session and dns log
-func toDnsContext(ctx context.Context, addr string) context.Context {
+func toDnsContext(ctx context.Context, addr string, ns *NameServer) context.Context {
 	dnsCtx := core.ToBackgroundDetachedContext(ctx)
 	if inbound := session.InboundFromContext(ctx); inbound != nil {
 		dnsCtx = session.ContextWithInbound(dnsCtx, inbound)
@@ -243,5 +243,10 @@ func toDnsContext(ctx context.Context, addr string) context.Context {
 		Status: log.AccessAccepted,
 		Reason: "",
 	})
+	if ns != nil {
+		if ns.GetOutboundTag() != "" {
+			dnsCtx = session.SetForcedOutboundTagToContext(dnsCtx, ns.GetOutboundTag())
+		}
+	}
 	return dnsCtx
 }
