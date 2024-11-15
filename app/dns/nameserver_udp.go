@@ -33,10 +33,11 @@ type ClassicNameServer struct {
 	cleanup       *task.Periodic
 	reqID         uint32
 	queryStrategy QueryStrategy
+	ns            *NameServer
 }
 
 // NewClassicNameServer creates udp server object for remote resolving.
-func NewClassicNameServer(address net.Destination, dispatcher routing.Dispatcher, queryStrategy QueryStrategy) *ClassicNameServer {
+func NewClassicNameServer(address net.Destination, dispatcher routing.Dispatcher, queryStrategy QueryStrategy, ns *NameServer) *ClassicNameServer {
 	// default to 53 if unspecific
 	if address.Port == 0 {
 		address.Port = net.Port(53)
@@ -49,6 +50,7 @@ func NewClassicNameServer(address net.Destination, dispatcher routing.Dispatcher
 		pub:           pubsub.NewService(),
 		name:          strings.ToUpper(address.String()),
 		queryStrategy: queryStrategy,
+		ns:            ns,
 	}
 	s.cleanup = &task.Periodic{
 		Interval: time.Minute,
@@ -196,7 +198,7 @@ func (s *ClassicNameServer) sendQuery(ctx context.Context, domain string, client
 	for _, req := range reqs {
 		s.addPendingRequest(req)
 		b, _ := dns.PackMessage(req.msg)
-		s.udpServer.Dispatch(toDnsContext(ctx, s.address.String()), *s.address, b)
+		s.udpServer.Dispatch(toDnsContext(ctx, s.address.String(), s.ns), *s.address, b)
 	}
 }
 
