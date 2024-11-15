@@ -43,6 +43,8 @@ func NewTCPNameServer(
 	url *url.URL,
 	dispatcher routing.Dispatcher,
 	queryStrategy QueryStrategy,
+	ns *NameServer,
+
 ) (*TCPNameServer, error) {
 	s, err := baseTCPNameServer(url, "TCP", queryStrategy)
 	if err != nil {
@@ -50,7 +52,7 @@ func NewTCPNameServer(
 	}
 
 	s.dial = func(ctx context.Context) (net.Conn, error) {
-		link, err := dispatcher.Dispatch(toDnsContext(ctx, s.destination.String()), *s.destination)
+		link, err := dispatcher.Dispatch(toDnsContext(ctx, s.destination.String(), ns), *s.destination)
 		if err != nil {
 			return nil, err
 		}
