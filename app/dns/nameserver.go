@@ -30,6 +30,7 @@ type Client struct {
 	skipFallback bool
 	domains      []string
 	expectIPs    []*router.GeoIPMatcher
+	nameServer   *NameServer
 }
 
 var errExpectedIPNonMatch = errors.New("expectIPs not match")
@@ -162,6 +163,7 @@ func NewClient(
 		client.skipFallback = ns.SkipFallback
 		client.domains = rules
 		client.expectIPs = matchers
+		client.nameServer = ns
 		return nil
 	})
 	return client, err
