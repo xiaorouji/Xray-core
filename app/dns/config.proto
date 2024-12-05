@@ -30,6 +30,7 @@ message NameServer {
   QueryStrategy query_strategy = 7;
 
   string outboundTag = 8;
+  string ipset = 9;
 }
 
 enum DomainMatchingType {

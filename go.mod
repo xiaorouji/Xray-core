@@ -10,6 +10,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/miekg/dns v1.1.62
+	github.com/nadoo/ipset v0.5.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pires/go-proxyproto v0.8.0
 	github.com/refraction-networking/utls v1.6.7
