@@ -4,9 +4,11 @@ package dns
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strings"
 	"sync"
 
+	ipset "github.com/nadoo/ipset"
 	"github.com/xtls/xray-core/app/router"
 	"github.com/xtls/xray-core/common"
 	"github.com/xtls/xray-core/common/errors"
@@ -195,6 +197,30 @@ func (s *DNS) LookupIP(domain string, option dns.IPOption) ([]net.IP, error) {
 		}
 		ips, err := client.QueryIP(ctx, domain, option, s.disableCache)
 		if len(ips) > 0 {
+			if runtime.GOOS == "linux" {
+				//Write to IPSet
+				if ipsetNames := strings.Split(client.nameServer.Ipset, ","); len(ipsetNames) > 0 {
+					if err := ipset.Init(); err == nil {
+						for i := 0; i < len(ipsetNames); i++ {
+							ipsetName := ipsetNames[i]
+							for _, ip := range ips {
+								ipStr := ip.String()
+								if ipStr == "" || ipStr == "0.0.0.0" || ipStr == "255.255.255.255" {
+									continue
+								}
+								err := ipset.Add(ipsetName, ipStr)
+								if err == nil {
+									if p4 := ip.To4(); len(p4) == 4 {
+										errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv4 IPSet[", ipsetName, "]")
+									} else {
+										errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv6 IPSet[", ipsetName, "]")
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			return ips, nil
 		}
 		if err != nil {
