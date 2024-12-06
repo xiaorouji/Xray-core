@@ -43,7 +43,7 @@ type QUICNameServer struct {
 }
 
 // NewQUICNameServer creates DNS-over-QUIC client object for local resolving
-func NewQUICNameServer(url *url.URL, queryStrategy QueryStrategy) (*QUICNameServer, error) {
+func NewQUICNameServer(url *url.URL, ns *NameServer) (*QUICNameServer, error) {
 	errors.LogInfo(context.Background(), "DNS: created Local DNS-over-QUIC client for ", url.String())
 
 	var err error
@@ -61,7 +61,7 @@ func NewQUICNameServer(url *url.URL, queryStrategy QueryStrategy) (*QUICNameServ
 		pub:           pubsub.NewService(),
 		name:          url.String(),
 		destination:   &dest,
-		queryStrategy: queryStrategy,
+		queryStrategy: ns.GetQueryStrategy(),
 	}
 	s.cleanup = &task.Periodic{
 		Interval: time.Minute,

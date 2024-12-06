@@ -41,9 +41,9 @@ type DoHNameServer struct {
 }
 
 // NewDoHNameServer creates DOH server object for remote resolving.
-func NewDoHNameServer(url *url.URL, dispatcher routing.Dispatcher, queryStrategy QueryStrategy, ns *NameServer) (*DoHNameServer, error) {
+func NewDoHNameServer(url *url.URL, dispatcher routing.Dispatcher, ns *NameServer) (*DoHNameServer, error) {
 	errors.LogInfo(context.Background(), "DNS: created Remote DOH client for ", url.String())
-	s := baseDOHNameServer(url, "DOH", queryStrategy)
+	s := baseDOHNameServer(url, "DOH", ns.GetQueryStrategy())
 
 	s.dispatcher = dispatcher
 	tr := &http.Transport{
@@ -90,9 +90,9 @@ func NewDoHNameServer(url *url.URL, dispatcher routing.Dispatcher, queryStrategy
 }
 
 // NewDoHLocalNameServer creates DOH client object for local resolving
-func NewDoHLocalNameServer(url *url.URL, queryStrategy QueryStrategy) *DoHNameServer {
+func NewDoHLocalNameServer(url *url.URL, ns *NameServer) *DoHNameServer {
 	url.Scheme = "https"
-	s := baseDOHNameServer(url, "DOHL", queryStrategy)
+	s := baseDOHNameServer(url, "DOHL", ns.GetQueryStrategy())
 	tr := &http.Transport{
 		IdleConnTimeout:   90 * time.Second,
 		ForceAttemptHTTP2: true,
