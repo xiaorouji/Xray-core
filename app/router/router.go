@@ -34,6 +34,7 @@ type Route struct {
 	outboundTag       string
 	ruleTag           string
 	ipset             string
+	nftset            string
 }
 
 // Init initializes the Router.
@@ -65,6 +66,7 @@ func (r *Router) Init(ctx context.Context, config *Config, d dns.Client, ohm out
 			Tag:       rule.GetTag(),
 			RuleTag:   rule.GetRuleTag(),
 			Ipset:     rule.GetIpset(),
+			Nftset:    rule.GetNftset(),
 		}
 		btag := rule.GetBalancingTag()
 		if len(btag) > 0 {
@@ -90,7 +92,7 @@ func (r *Router) PickRoute(ctx routing.Context) (routing.Route, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Route{Context: ctx, outboundTag: tag, ruleTag: rule.RuleTag, ipset: rule.Ipset}, nil
+	return &Route{Context: ctx, outboundTag: tag, ruleTag: rule.RuleTag, ipset: rule.Ipset, nftset: rule.Nftset}, nil
 }
 
 // AddRule implements routing.Router.
@@ -140,6 +142,7 @@ func (r *Router) ReloadRules(config *Config, shouldAppend bool) error {
 			Tag:       rule.GetTag(),
 			RuleTag:   rule.GetRuleTag(),
 			Ipset:     rule.GetIpset(),
+			Nftset:    rule.GetNftset(),
 		}
 		btag := rule.GetBalancingTag()
 		if len(btag) > 0 {
@@ -247,6 +250,10 @@ func (r *Route) GetRuleTag() string {
 
 func (r *Route) GetIpset() string {
 	return r.ipset
+}
+
+func (r *Route) GetNftset() string {
+	return r.nftset
 }
 
 func init() {

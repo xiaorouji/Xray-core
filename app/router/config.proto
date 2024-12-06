@@ -111,6 +111,7 @@ message RoutingRule {
 
   string domain_matcher = 17;
   string ipset = 19;
+  string nftset = 20;
 }
 
 message BalancingRule {

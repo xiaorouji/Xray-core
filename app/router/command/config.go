@@ -36,6 +36,10 @@ func (c routingContext) GetIpset() string {
 	return ""
 }
 
+func (c routingContext) GetNftset() string {
+	return ""
+}
+
 // GetSkipDNSResolve is a mock implementation here to match the interface,
 // SkipDNSResolve is set from dns module, no use if coming from a protobuf object?
 // TODO: please confirm @Vigilans

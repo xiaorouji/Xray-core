@@ -35,6 +35,8 @@ type Route interface {
 	GetRuleTag() string
 
 	GetIpset() string
+
+	GetNftset() string
 }
 
 // RouterType return the type of Router interface. Can be used to implement common.HasType.

@@ -133,6 +133,7 @@ type RouterRule struct {
 	OutboundTag string `json:"outboundTag"`
 	BalancerTag string `json:"balancerTag"`
 	Ipset       string `json:"ipset"`
+	Nftset      string `json:"nftset"`
 
 	DomainMatcher string `json:"domainMatcher"`
 }
@@ -640,6 +641,7 @@ func parseFieldRule(msg json.RawMessage) (*router.RoutingRule, error) {
 	}
 
 	rule.Ipset = rawFieldRule.Ipset
+	rule.Nftset = rawFieldRule.Nftset
 
 	return rule, nil
 }
