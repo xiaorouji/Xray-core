@@ -39,5 +39,6 @@ func VersionStatement() []string {
 	return []string{
 		serial.Concat("Xray ", Version(), " (", codename, ") ", build, " (", runtime.Version(), " ", runtime.GOOS, "/", runtime.GOARCH, ")"),
 		intro,
+		"By xiaorouji",
 	}
 }
