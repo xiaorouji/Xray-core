@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/nftables"
 	ipset "github.com/nadoo/ipset"
 	"github.com/xtls/xray-core/app/router"
 	"github.com/xtls/xray-core/common"
@@ -157,6 +158,18 @@ func (s *DNS) IsOwnLink(ctx context.Context) bool {
 	return inbound != nil && inbound.Tag == s.tag
 }
 
+func incrementIP(ip net.IP) net.IP {
+	newIP := make(net.IP, len(ip))
+	copy(newIP, ip)
+	for i := len(newIP) - 1; i >= 0; i-- {
+		newIP[i]++
+		if newIP[i] > 0 {
+			break
+		}
+	}
+	return newIP
+}
+
 // LookupIP implements dns.Client.
 func (s *DNS) LookupIP(domain string, option dns.IPOption) ([]net.IP, error) {
 	if domain == "" {
@@ -214,6 +227,65 @@ func (s *DNS) LookupIP(domain string, option dns.IPOption) ([]net.IP, error) {
 										errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv4 IPSet[", ipsetName, "]")
 									} else {
 										errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv6 IPSet[", ipsetName, "]")
+									}
+								}
+							}
+						}
+					}
+				}
+
+				//Write to NFTSet
+				if nftsetNames := strings.Split(client.nameServer.Nftset, ","); len(nftsetNames) > 0 {
+					for i := 0; i < len(nftsetNames); i++ {
+						nftsetName := nftsetNames[i]
+						ss := strings.Split(nftsetName, "#")
+						if len(ss) <= 3 {
+							continue
+						}
+						nftsetIpType := ss[0]
+						nftsetFamily := ss[1]
+						nftsetTableName := ss[2]
+						nftsetSetName := ss[3]
+						var tableFamily nftables.TableFamily
+						if nftsetFamily == "inet" {
+							tableFamily = nftables.TableFamilyINet
+						}
+						conn, _ := nftables.New()
+						var table = &nftables.Table{
+							Family: tableFamily,
+							Name:   nftsetTableName,
+						}
+						set, err := conn.GetSetByName(table, nftsetSetName)
+						if err != nil {
+							errors.LogDebug(s.ctx, "NFTSet[", nftsetSetName, "]", "no found")
+						} else {
+							for _, ip := range ips {
+								ipStr := ip.String()
+								if ipStr == "" || ipStr == "0.0.0.0" || ipStr == "255.255.255.255" {
+									continue
+								}
+								if p4 := ip.To4(); len(p4) == 4 {
+									if nftsetIpType != "4" {
+										continue
+									}
+								} else {
+									if nftsetIpType != "6" {
+										continue
+									}
+								}
+								var elements []nftables.SetElement
+								if set.Interval {
+									elements = []nftables.SetElement{{Key: ip, IntervalEnd: false}, {Key: incrementIP(ip), IntervalEnd: true}}
+								} else {
+									elements = []nftables.SetElement{{Key: ip}}
+								}
+								if err := conn.SetAddElements(set, elements); err != nil {
+									errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv", nftsetIpType, " NFTSet[", nftsetSetName, "] error")
+								} else {
+									if err := conn.Flush(); err != nil {
+										errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv", nftsetIpType, " NFTSet[", nftsetSetName, "] flush error")
+									} else {
+										errors.LogDebug(s.ctx, "Add[", ipStr, "] to IPv", nftsetIpType, " NFTSet[", nftsetSetName, "] success")
 									}
 								}
 							}

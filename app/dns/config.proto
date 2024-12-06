@@ -31,6 +31,7 @@ message NameServer {
 
   string outboundTag = 8;
   string ipset = 9;
+  string nftset = 10;
 }
 
 enum DomainMatchingType {
