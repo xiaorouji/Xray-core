@@ -42,11 +42,10 @@ type TCPNameServer struct {
 func NewTCPNameServer(
 	url *url.URL,
 	dispatcher routing.Dispatcher,
-	queryStrategy QueryStrategy,
 	ns *NameServer,
 
 ) (*TCPNameServer, error) {
-	s, err := baseTCPNameServer(url, "TCP", queryStrategy)
+	s, err := baseTCPNameServer(url, "TCP", ns.GetQueryStrategy())
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +66,8 @@ func NewTCPNameServer(
 }
 
 // NewTCPLocalNameServer creates DNS over TCP client object for local resolving
-func NewTCPLocalNameServer(url *url.URL, queryStrategy QueryStrategy) (*TCPNameServer, error) {
-	s, err := baseTCPNameServer(url, "TCPL", queryStrategy)
+func NewTCPLocalNameServer(url *url.URL, ns *NameServer) (*TCPNameServer, error) {
+	s, err := baseTCPNameServer(url, "TCPL", ns.GetQueryStrategy())
 	if err != nil {
 		return nil, err
 	}
