@@ -21,6 +21,7 @@ type NameServerConfig struct {
 	QueryStrategy string
 	OutboundTag   string
 	Ipset         string
+	Nftset        string
 }
 
 func (c *NameServerConfig) UnmarshalJSON(data []byte) error {
@@ -40,6 +41,7 @@ func (c *NameServerConfig) UnmarshalJSON(data []byte) error {
 		QueryStrategy string     `json:"queryStrategy"`
 		OutboundTag   string     `json:"outboundTag"`
 		Ipset         string     `json:"ipset,omitempty"`
+		Nftset        string     `json:"nftset,omitempty"`
 	}
 	if err := json.Unmarshal(data, &advanced); err == nil {
 		c.Address = advanced.Address
@@ -51,6 +53,7 @@ func (c *NameServerConfig) UnmarshalJSON(data []byte) error {
 		c.QueryStrategy = advanced.QueryStrategy
 		c.OutboundTag = advanced.OutboundTag
 		c.Ipset = advanced.Ipset
+		c.Nftset = advanced.Nftset
 		return nil
 	}
 
@@ -125,6 +128,7 @@ func (c *NameServerConfig) Build() (*dns.NameServer, error) {
 		QueryStrategy:     resolveQueryStrategy(c.QueryStrategy),
 		OutboundTag:       c.OutboundTag,
 		Ipset:             c.Ipset,
+		Nftset:            c.Nftset,
 	}, nil
 }
 
