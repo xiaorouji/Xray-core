@@ -24,33 +24,31 @@ import (
 // ClassicNameServer implemented traditional UDP DNS.
 type ClassicNameServer struct {
 	sync.RWMutex
-	name          string
-	address       *net.Destination
-	ips           map[string]*record
-	requests      map[uint16]*dnsRequest
-	pub           *pubsub.Service
-	udpServer     *udp.Dispatcher
-	cleanup       *task.Periodic
-	reqID         uint32
-	queryStrategy QueryStrategy
-	ns            *NameServer
+	name      string
+	address   *net.Destination
+	ips       map[string]*record
+	requests  map[uint16]*dnsRequest
+	pub       *pubsub.Service
+	udpServer *udp.Dispatcher
+	cleanup   *task.Periodic
+	reqID     uint32
+	ns        *NameServer
 }
 
 // NewClassicNameServer creates udp server object for remote resolving.
-func NewClassicNameServer(address net.Destination, dispatcher routing.Dispatcher, queryStrategy QueryStrategy, ns *NameServer) *ClassicNameServer {
+func NewClassicNameServer(address net.Destination, dispatcher routing.Dispatcher, ns *NameServer) *ClassicNameServer {
 	// default to 53 if unspecific
 	if address.Port == 0 {
 		address.Port = net.Port(53)
 	}
 
 	s := &ClassicNameServer{
-		address:       &address,
-		ips:           make(map[string]*record),
-		requests:      make(map[uint16]*dnsRequest),
-		pub:           pubsub.NewService(),
-		name:          strings.ToUpper(address.String()),
-		queryStrategy: queryStrategy,
-		ns:            ns,
+		address:  &address,
+		ips:      make(map[string]*record),
+		requests: make(map[uint16]*dnsRequest),
+		pub:      pubsub.NewService(),
+		name:     strings.ToUpper(address.String()),
+		ns:       ns,
 	}
 	s.cleanup = &task.Periodic{
 		Interval: time.Minute,
@@ -243,7 +241,7 @@ func (s *ClassicNameServer) findIPsForDomain(domain string, option dns_feature.I
 // QueryIP implements Server.
 func (s *ClassicNameServer) QueryIP(ctx context.Context, domain string, clientIP net.IP, option dns_feature.IPOption, disableCache bool) ([]net.IP, error) {
 	fqdn := Fqdn(domain)
-	option = ResolveIpOptionOverride(s.queryStrategy, option)
+	option = ResolveIpOptionOverride(s.ns.GetQueryStrategy(), option)
 	if !option.IPv4Enable && !option.IPv6Enable {
 		return nil, dns_feature.ErrEmptyResponse
 	}
