@@ -3,10 +3,12 @@ package dispatcher
 import (
 	"context"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
 
+	ipset "github.com/nadoo/ipset"
 	"github.com/xtls/xray-core/common"
 	"github.com/xtls/xray-core/common/buf"
 	"github.com/xtls/xray-core/common/errors"
@@ -443,6 +445,34 @@ func (d *DefaultDispatcher) routedDispatch(ctx context.Context, link *transport.
 					errors.LogInfo(ctx, "Hit route rule: [", route.GetRuleTag(), "] so taking detour [", outTag, "] for [", destination, "]")
 				}
 				handler = h
+				inbound := session.InboundFromContext(ctx)
+				if runtime.GOOS == "linux" && inbound.Name == "dokodemo-door" {
+					if route.GetIpset() != "" {
+						//Write to IPSet
+						if ipsetNames := strings.Split(route.GetIpset(), ","); len(ipsetNames) > 0 {
+							if err := ipset.Init(); err == nil {
+								for i := 0; i < len(ipsetNames); i++ {
+									ipsetName := ipsetNames[i]
+									ipStr := destination.Address.IP().String()
+									if p4 := destination.Address.IP().To4(); len(p4) == 4 {
+										if ipStr == "" || ipStr == "0.0.0.0" || ipStr == "255.255.255.255" {
+											continue
+										}
+										err := ipset.Add(ipsetName, ipStr)
+										if err == nil {
+											errors.LogDebug(ctx, "Add[", ipStr, "] to IPv4 IPSet[", ipsetName, "]")
+										}
+									} else {
+										err := ipset.Add(ipsetName, ipStr)
+										if err == nil {
+											errors.LogDebug(ctx, "Add[", ipStr, "] to IPv6 IPSet[", ipsetName, "]")
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			} else {
 				errors.LogWarning(ctx, "non existing outTag: ", outTag)
 			}

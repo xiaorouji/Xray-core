@@ -33,6 +33,8 @@ type Route interface {
 
 	// GetRuleTag returns the matching rule tag for debugging if exists
 	GetRuleTag() string
+
+	GetIpset() string
 }
 
 // RouterType return the type of Router interface. Can be used to implement common.HasType.

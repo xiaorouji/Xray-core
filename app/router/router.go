@@ -33,6 +33,7 @@ type Route struct {
 	outboundGroupTags []string
 	outboundTag       string
 	ruleTag           string
+	ipset             string
 }
 
 // Init initializes the Router.
@@ -63,6 +64,7 @@ func (r *Router) Init(ctx context.Context, config *Config, d dns.Client, ohm out
 			Condition: cond,
 			Tag:       rule.GetTag(),
 			RuleTag:   rule.GetRuleTag(),
+			Ipset:     rule.GetIpset(),
 		}
 		btag := rule.GetBalancingTag()
 		if len(btag) > 0 {
@@ -88,7 +90,7 @@ func (r *Router) PickRoute(ctx routing.Context) (routing.Route, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Route{Context: ctx, outboundTag: tag, ruleTag: rule.RuleTag}, nil
+	return &Route{Context: ctx, outboundTag: tag, ruleTag: rule.RuleTag, ipset: rule.Ipset}, nil
 }
 
 // AddRule implements routing.Router.
@@ -137,6 +139,7 @@ func (r *Router) ReloadRules(config *Config, shouldAppend bool) error {
 			Condition: cond,
 			Tag:       rule.GetTag(),
 			RuleTag:   rule.GetRuleTag(),
+			Ipset:     rule.GetIpset(),
 		}
 		btag := rule.GetBalancingTag()
 		if len(btag) > 0 {
@@ -240,6 +243,10 @@ func (r *Route) GetOutboundTag() string {
 
 func (r *Route) GetRuleTag() string {
 	return r.ruleTag
+}
+
+func (r *Route) GetIpset() string {
+	return r.ipset
 }
 
 func init() {

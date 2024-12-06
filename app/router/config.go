@@ -15,6 +15,7 @@ type Rule struct {
 	RuleTag   string
 	Balancer  *Balancer
 	Condition Condition
+	Ipset     string
 }
 
 func (r *Rule) GetTag() (string, error) {
