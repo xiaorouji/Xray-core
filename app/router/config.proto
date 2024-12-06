@@ -110,6 +110,7 @@ message RoutingRule {
   map<string, string> attributes = 15;
 
   string domain_matcher = 17;
+  string ipset = 19;
 }
 
 message BalancingRule {

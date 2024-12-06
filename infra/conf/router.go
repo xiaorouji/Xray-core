@@ -132,6 +132,7 @@ type RouterRule struct {
 	Type        string `json:"type"`
 	OutboundTag string `json:"outboundTag"`
 	BalancerTag string `json:"balancerTag"`
+	Ipset       string `json:"ipset"`
 
 	DomainMatcher string `json:"domainMatcher"`
 }
@@ -637,6 +638,8 @@ func parseFieldRule(msg json.RawMessage) (*router.RoutingRule, error) {
 	if len(rawFieldRule.Attributes) > 0 {
 		rule.Attributes = rawFieldRule.Attributes
 	}
+
+	rule.Ipset = rawFieldRule.Ipset
 
 	return rule, nil
 }
